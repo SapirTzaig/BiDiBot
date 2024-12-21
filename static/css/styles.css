@@ -1,0 +1,225 @@
+/* Reset some default styles */
+body, h1, p, input, button {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Header styling */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+}
+
+header .logo {
+    display: flex;
+    align-items: center;
+}
+
+header .logo img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+header .user-profile {
+    display: flex;
+    align-items: center;
+}
+
+header .user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+/* Main content styling */
+main {
+    text-align: center;
+    margin: 20px;
+}
+
+/* Welcome message styling */
+#welcomeMessage {
+    font-size: 2em;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Subtitle message styling */
+.subtitle {
+    font-size: 1.2em;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Form container (makes URL input and Start button aligned horizontally) */
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;  /* Space between input and button */
+    flex-wrap: wrap; /* Allows wrapping if there's not enough space */
+    margin-bottom: 20px;
+}
+
+/* URL input field */
+.url-input {
+    width: 250px;
+    padding: 10px;
+    border: 2px solid #ccc;
+    border-radius: 25px;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.url-input:focus {
+    border-color: #007bff;
+}
+
+/* Image upload button container */
+.image-upload-container {
+    position: relative;
+}
+
+/* Hide the default file input */
+.image-upload {
+    position: absolute;
+    opacity: 0;
+    width: 35px; /* Size of the button */
+    height: 35px;
+    cursor: pointer;
+}
+
+/* Custom image upload button (round) */
+.image-upload-btn {
+    padding: 25px;
+    width: 35px;
+    height: 35px;
+    background-color: #4CAF50; /* Green background */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+}
+
+.image-upload-btn img {
+    width: 100px; /* Set your preferred size */
+    height: 100px; /* Set the height to match the width */
+    border-radius: 50%; /* This makes the image circular */
+    object-fit: cover; /* Ensures the image covers the circle without stretching */
+    cursor: pointer; /* Makes the image appear clickable */
+}
+
+.image-upload-btn i {
+    color: white;
+    font-size: 18px;
+}
+
+
+/* Start button */
+.start-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.start-button:hover {
+    background-color: #04c056;
+}
+
+/* Hover effect on user profile image */
+.user-img {
+    cursor: pointer;
+}
+
+/* Dropdown styling */
+.dropdown {
+    position: absolute;
+    display: none;
+    top: 50px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+.user-profile:hover .dropdown {
+    display: block;
+}
+
+.dropdown ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dropdown li {
+    padding: 10px;
+    text-align: left;
+}
+
+.dropdown li a {
+    text-decoration: none;
+    color: #333;
+}
+
+.dropdown li:hover {
+    background-color: #f0f0f0;
+}
+
+/* Results section */
+.results-section {
+    width: 100%; /* Ensures it spans the full width of the parent container */
+    text-align: center; /* Centers content */
+    margin-top: 10px; /* Space above results */
+}
+
+/* Results header */
+#results-header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Results container */
+#results-container {
+    width: 80%; /* Adjust the width */
+    max-height: 200px; /* Limits height */
+    overflow-y: auto; /* Adds scroll if content exceeds height */
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-radius: 10px;
+    border: 2px solid #ccc;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin: 0 auto; /* Centers the container horizontally */
+}
+
+/* Individual result item */
+.result-item {
+    padding: 8px;
+    margin-bottom: 8px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Optionally, you can add hover effect to result items */
+.result-item:hover {
+    background-color: #e6e6e6;
+    cursor: pointer;
+}

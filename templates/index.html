@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiDiBot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/BiDi.ico') }}">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="{{ url_for('static', filename='images/BiDi.jpg') }}" alt="Logo">
+            <span>BiDiBot</span>
+        </div>
+        <div class="user-profile">
+            <img src="{{ url_for('static', filename='images/user.png') }}" alt="User" class="user-img" id="userImg"> <!-- Replace with actual image path -->
+            <div class="dropdown">
+                <ul id="dropdownMenu">
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Welcome message -->
+        <p id="welcomeMessage">Welcome to BiDiBot!</p>
+
+        <!-- Subtitle text -->
+        <p class="subtitle">Enter a URL or upload an image in order to start analyzing them:</p>
+
+        <form id="analysis-form" method="POST" enctype="multipart/form-data">
+            <div class="form-container">
+                <!-- Image upload button container -->
+                <div class="image-upload-container">
+                    <!-- Custom image upload button -->
+                    <label for="image" class="image-upload-btn">
+                        <img src="{{ url_for('static', filename='images/image_upload2.jpg') }}" alt="Upload Image" />
+                    </label>
+                    <!-- Actual file input (hidden) -->
+                    <input type="file" id="image" name="image" accept="image/*" class="image-upload">
+                </div>
+        
+                <!-- URL input field -->
+                <input type="text" id="url" name="url" placeholder="Enter URL here" class="url-input">
+        
+                <!-- Submit button -->
+                <button type="submit" class="start-button">Start</button>
+            </div>
+        
+            <!-- Results Section -->
+            <div class="results-section">
+                <h3 id="results-header" style="display: none;">Results</h3>
+                <div id="results-container" style="display: none;">
+                    <!-- Example result items will be inserted dynamically here -->
+                </div>
+            </div>
+        </form>
+    </main>
+
+    <script>
+        const isLoggedIn = true; 
+
+        // Get the dropdown menu and user image elements
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const userImg = document.getElementById('userImg');
+
+        // Function to populate the dropdown menu based on the user's login status
+        function populateDropdown() {
+            if (isLoggedIn) {
+                // If the user is logged in, show profile and history options
+                dropdownMenu.innerHTML = `
+                    <li><a href="/profile">Profile</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/logout">Logout</a></li>
+                `;
+            } else {
+                // If the user is not logged in, show login option
+                dropdownMenu.innerHTML = `
+                    <li><a href="/login">Login</a></li>
+                `;
+            }
+        }
+
+        // Call populateDropdown to render the appropriate menu items
+        populateDropdown();
+
+        // Show dropdown on hover (mouse enter)
+        userImg.addEventListener('mouseenter', () => {
+            dropdownMenu.style.display = 'block';
+        });
+
+        // Show dropdown on hover (mouse enter) over the dropdown menu itself
+        dropdownMenu.addEventListener('mouseenter', () => {
+            dropdownMenu.style.display = 'block';
+        });
+
+        // Hide dropdown when mouse leaves both the user image and the dropdown menu
+        userImg.addEventListener('mouseleave', () => {
+            setTimeout(() => {
+                // Check if the mouse has really left the dropdown and user image (allowing a small delay to avoid accidental disappearance)
+                if (!dropdownMenu.matches(':hover') && !userImg.matches(':hover')) {
+                    dropdownMenu.style.display = 'none';
+                }
+            }, 200); // Adjust delay as needed (in milliseconds)
+        });
+
+        // Hide dropdown when mouse leaves the dropdown menu itself
+        dropdownMenu.addEventListener('mouseleave', () => {
+            setTimeout(() => {
+                // Only hide the dropdown if the mouse is no longer hovering over the menu or the user image
+                if (!dropdownMenu.matches(':hover') && !userImg.matches(':hover')) {
+                    dropdownMenu.style.display = 'none';
+                }
+            }, 200); // Adjust delay as needed (in milliseconds)
+        });
+
+        // Toggle between URL input and image upload button
+        function toggleInputs() {
+            const urlInput = document.getElementById('url');
+            const imageInput = document.getElementById('image');
+            if (urlInput.style.display === 'none') {
+                urlInput.style.display = 'block';
+                imageInput.style.display = 'none';
+            } else {
+                urlInput.style.display = 'none';
+                imageInput.style.display = 'block';
+            }
+        }
+
+        document.getElementById('analysis-form').addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent default form submission behavior
+
+        const urlInput = document.getElementById('url').value;
+        const imageInput = document.getElementById('image').files[0];
+        const resultsHeader = document.getElementById("results-header");
+        const resultsContainer = document.getElementById("results-container");
+
+        // Clear previous results
+        resultsContainer.innerHTML = '';
+        resultsHeader.style.display = "none";
+        resultsContainer.style.display = "none";
+
+        if (!urlInput && !imageInput) {
+            alert("Please enter a URL or upload an image.");
+            return;
+        }
+
+        const formData = new FormData();
+        if (urlInput) {
+            formData.append('url', urlInput);
+        }
+        if (imageInput) {
+            formData.append('image', imageInput);
+        }
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                body: formData,
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                resultsHeader.style.display = "block"; // Show the results header
+                resultsContainer.style.display = "block"; // Show the results container
+
+                // Dynamically display results
+                const analysisResults = result.analysis || ["No results available."];
+                analysisResults.forEach((item) => {
+                    const resultItem = document.createElement("div");
+                    resultItem.classList.add("result-item");
+                    resultItem.textContent = item;
+                    resultsContainer.appendChild(resultItem);
+                });
+            } else {
+                alert(`Error: ${result.error || "An error occurred."}`);
+            }
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        }
+    });
+    </script>
+</body>
+</html>
