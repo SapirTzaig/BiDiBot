@@ -52,19 +52,6 @@ def login():
     logging.info("Redirecting to Google OAuth2 authorization URL...")
     return redirect(authorization_url)
 
-# Route to render the home page
-# @app.route('/')
-# def home():
-#     token = session.get('oauth_token')
-#     if not token:
-#         # Initiate OAuth2 process on page load
-#         google = OAuth2Session(CLIENT_ID, redirect_uri=url_for('callback', _external=True), scope=["openid", "https://www.googleapis.com/auth/cloud-platform"])
-#         authorization_url, state = google.authorization_url(AUTHORIZATION_BASE_URL, access_type="offline", prompt="consent")
-#         session['oauth_state'] = state
-#         logging.info("Redirecting to Google OAuth2 authorization URL...")
-#         return redirect(authorization_url)
-#     return render_template('index.html', logged_in=True)
-
 # OAuth 2.0 Callback Route
 @app.route('/callback')
 def callback():
@@ -78,9 +65,8 @@ def callback():
     except Exception as e:
         logging.error(f"Error fetching OAuth token: {e}")
         return jsonify({"error": "Authentication failed. Please try again."}), 500
-
     return redirect(url_for('home'))  # Redirect after successful authentication
-
+    
 # Unified route for analyzing either URL or image
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -153,6 +139,7 @@ def analyze():
 def profile():
     # Logic to render the user profile page
     return render_template('404.html')  # Ensure you have a 'profile.html' template
+
 @app.route('/history')
 def history():
     # Logic to render the user's history page

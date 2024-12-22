@@ -23,12 +23,8 @@
     </header>
 
     <main>
-        <div class="header-content">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/BiDi_main.jpg') }}" alt="Logo" class="logo">
-            </div>
-            <p id="welcomeMessage">Welcome to BiDiBot!</p>
-        </div>
+        <!-- Welcome message -->
+        <p id="welcomeMessage">Welcome to BiDiBot!</p>
 
         <!-- Subtitle text -->
         <p class="subtitle">Enter a URL or upload an image in order to start analyzing them:</p>
@@ -39,7 +35,7 @@
                 <div class="image-upload-container">
                     <!-- Custom image upload button -->
                     <label for="image" class="image-upload-btn">
-                        <img src="{{ url_for('static', filename='images/upload.png') }}" alt="Upload Image" />
+                        <img src="{{ url_for('static', filename='images/image_upload2.jpg') }}" alt="Upload Image" />
                     </label>
                     <!-- Actual file input (hidden) -->
                     <input type="file" id="image" name="image" accept="image/*" class="image-upload">
