@@ -172,6 +172,22 @@ main {
     transform: translateY(-2px); /* Lift the button slightly */
 }
 
+
+.clear-button {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    border: none;
+    background-color: #da6efb;
+    color: white;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.clear-button:hover {
+    background-color: #ca85dd;
+    transform: translateY(-2px);
+}
+
 /* Hover effect on user profile image */
 .user-img {
     cursor: pointer;

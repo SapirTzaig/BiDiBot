@@ -1,158 +1,134 @@
-from flask import Flask, request, jsonify, render_template, redirect, session, url_for
+from flask import Flask, request, jsonify, render_template
 from dotenv import load_dotenv
 import requests
 import os
-import logging
-from requests_oauthlib import OAuth2Session
-
-logging.basicConfig(level=logging.DEBUG)  # Set level to DEBUG for detailed logs
+from bs4 import BeautifulSoup
+import requests
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# Add session and cookie-related configurations
-app.config.update(
-    SESSION_COOKIE_SECURE=False,  # Allow cookies to be set without HTTPS in development
-    SESSION_COOKIE_HTTPONLY=True  # Ensure cookies are only accessible via HTTP (not JavaScript)
-)
-
-# Set session to use filesystem for persistence
-app.config['SESSION_TYPE'] = 'filesystem'  # Store session in filesystem
-app.secret_key = os.getenv("SECRET_KEY")  # Secret key for Flask sessions
-
-# OAuth 2.0 Configuration
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+# API Configuration
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
-AUTHORIZATION_BASE_URL = "https://accounts.google.com/o/oauth2/auth"
-TOKEN_URL = "https://oauth2.googleapis.com/token"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Validate environment variables
-if not CLIENT_ID or not CLIENT_SECRET:
-    raise ValueError("CLIENT_ID or CLIENT_SECRET is not set. Please check your .env file.")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY is not set. Please check your .env file.")
 
-# Route to render the home page
 @app.route('/')
 def home():
-    token = session.get('oauth_token')
-    if token:
-        return render_template('index.html', logged_in=True)
-    else:
-        return render_template('index.html', logged_in=False)
+    return render_template('index.html')
 
-
-# OAuth 2.0 Login Route
-@app.route('/login')
-def login():
-    google = OAuth2Session(CLIENT_ID, redirect_uri=url_for('callback', _external=True), scope=["openid", "https://www.googleapis.com/auth/cloud-platform"])
-    authorization_url, state = google.authorization_url(AUTHORIZATION_BASE_URL, access_type="offline", prompt="consent")
-    session['oauth_state'] = state
-    logging.info("Redirecting to Google OAuth2 authorization URL...")
-    return redirect(authorization_url)
-
-# Route to render the home page
-# @app.route('/')
-# def home():
-#     token = session.get('oauth_token')
-#     if not token:
-#         # Initiate OAuth2 process on page load
-#         google = OAuth2Session(CLIENT_ID, redirect_uri=url_for('callback', _external=True), scope=["openid", "https://www.googleapis.com/auth/cloud-platform"])
-#         authorization_url, state = google.authorization_url(AUTHORIZATION_BASE_URL, access_type="offline", prompt="consent")
-#         session['oauth_state'] = state
-#         logging.info("Redirecting to Google OAuth2 authorization URL...")
-#         return redirect(authorization_url)
-#     return render_template('index.html', logged_in=True)
-
-# OAuth 2.0 Callback Route
-@app.route('/callback')
-def callback():
-    google = OAuth2Session(CLIENT_ID, redirect_uri=url_for('callback', _external=True), state=session['oauth_state'])
-    
-    try:
-        logging.info("Fetching OAuth token...")
-        token = google.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
-        session['oauth_token'] = token
-        logging.info(f"OAuth token fetched and stored in session: {token}")
-    except Exception as e:
-        logging.error(f"Error fetching OAuth token: {e}")
-        return jsonify({"error": "Authentication failed. Please try again."}), 500
-
-    return redirect(url_for('home'))  # Redirect after successful authentication
-
-# Unified route for analyzing either URL or image
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    # Fetch the OAuth token from the session
-    token = session.get('oauth_token')
-    
-    if not token:
-        logging.warning("OAuth token not found in session. Redirecting to login.")
-        return redirect(url_for('login'))  # Redirect to login if token is missing
-    
-    logging.info(f"OAuth Token found: {token['access_token']}")
+    # Get the form data
+    input_text = request.form.get('url')  # This matches the name of the URL input
+    input_image = request.files.get('image')  # This is to handle image uploads
 
-    # Fetch inputs from the form
-    url = request.form.get('url')
-    image = request.files.get('image')
-
-    # Ensure only one input is provided
-    if not url and not image:
-        return jsonify({"error": "Please provide either a URL or an image"}), 400
-    if url and image:
-        return jsonify({"error": "Please provide only one input: either a URL or an image"}), 400
+    if not input_text and not input_image:
+        return jsonify({"error": "Please provide either a URL or an image to analyze."}), 400
 
     try:
-        # Prepare headers for the Gemini API request
+        if input_text:
+            # Fetch the content from the provided URL
+            response = requests.get(input_text)
+            if response.status_code != 200:
+                return jsonify({"error": f"Failed to retrieve the URL. Status code: {response.status_code}"}), 400
+
+            # Parse the HTML content using BeautifulSoup
+            soup = BeautifulSoup(response.content, 'html.parser')
+
+            # Extract HTML content, CSS, and structure for analysis
+            html_content = str(soup)
+            
+            # Extract inline CSS and check if there are any right-to-left styles
+            inline_styles = soup.find_all('style')
+            css_content = "\n".join([style.get_text() for style in inline_styles])
+
+            # Check for the presence of 'dir' or 'lang' attributes to identify BiDi support
+            direction = soup.find('html').get('dir') if soup.find('html') else None
+            lang = soup.find('html').get('lang') if soup.find('html') else None
+
+            # Get all external CSS links that might define RTL styles
+            css_links = [link['href'] for link in soup.find_all('link', rel='stylesheet')]
+
+            # Combine relevant information into a payload for API analysis
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": f"Please analyze the following web content for bidirectional support, including its HTML structure, inline CSS, and external stylesheets.\n\nHTML Content:\n{html_content}\n\nInline CSS:\n{css_content}\n\nExternal CSS Links:\n{', '.join(css_links)}\n\nDirectionality: {direction}\nLanguage: {lang}"}
+                        ]
+                    }
+                ]
+            }
+
+        else:
+            # In case of image, provide analysis text
+            payload = {
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": "Please analyze this photo for bidirectional support."}
+                        ]
+                    }
+                ]
+            }
+
+        # Set up headers
         headers = {
-            "Authorization": f"Bearer {token['access_token']}",
             "Content-Type": "application/json"
         }
-        
-        # Handle URL analysis
-        if url:
-            payload = {
-                "prompt": {
-                    "text": f"Analyze the following URL for bidirectional support and features: {url}"
-                }
-            }
-            response = requests.post(GEMINI_API_URL, headers=headers, json=payload)
 
-        # Handle image analysis
-        elif image:
-            # Save the image temporarily
-            image_path = os.path.join("uploads", image.filename)
-            os.makedirs("uploads", exist_ok=True)  # Ensure the uploads directory exists
-            image.save(image_path)
+        # Make the API request
+        response = requests.post(
+            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
+            headers=headers,
+            json=payload
+        )
 
-            payload = {
-                "prompt": {
-                    "text": f"Analyze the following image located at {image_path} for bidirectional support and features."
-                }
-            }
-            response = requests.post(GEMINI_API_URL, headers=headers, json=payload)
-            os.remove(image_path)  # Clean up the uploaded image file
+        # Log the full response data for debugging
+        print("API Response Data:", response.json())  # Log the response to the console
 
-        # Process Gemini API response
+        # Handle the response
         if response.status_code == 200:
             response_data = response.json()
-            return jsonify({
-                "analysis": response_data.get("contents", []),
-                "message": "Analysis successfully completed"
-            })
+            # Log the response structure
+            print("API Response Structure:", response_data)  # Log the actual response structure
+            
+            # Extract the analysis result from the response
+            candidates = response_data.get("candidates", [])
+            
+            if candidates:
+                content = candidates[0].get("content", {})
+                parts = content.get("parts", [])
+                
+                if parts:
+                    analysis_result = parts[0].get("text", "No analysis text found")
+                    return jsonify({
+                        "analysis": analysis_result,
+                        "message": "Analysis completed successfully"
+                    })
+                else:
+                    return jsonify({"error": "No analysis parts found."}), 500
+            else:
+                return jsonify({"error": "No candidates found."}), 500
         else:
-            logging.error(f"Gemini API Error: {response.status_code} - {response.text}")
-            return jsonify({"error": "API error occurred", "details": response.text}), response.status_code
+            return jsonify({
+                "error": f"API error occurred: {response.status_code}",
+                "details": response.text
+            }), response.status_code
 
     except Exception as e:
-        logging.exception("An exception occurred during analysis")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/profile')
 def profile():
     # Logic to render the user profile page
     return render_template('404.html')  # Ensure you have a 'profile.html' template
+
 @app.route('/history')
 def history():
     # Logic to render the user's history page
@@ -160,8 +136,7 @@ def history():
 
 @app.route('/logout')
 def logout():
-    session.clear()  # Clear the session data
-    return redirect(url_for('home'))  # Redirect back to the homepage after logging out
+    return render_template('index.html')  # Redirect back to the homepage after logging out
 
 if __name__ == '__main__':
     app.run(debug=True)
