@@ -248,6 +248,7 @@ main {
 
 /* Results container */
 #results-container {
+    background-color: #fff !important;
     width: 80%;
     max-height: 250px;
     overflow-y: auto;
@@ -259,19 +260,15 @@ main {
     margin: 0 auto;
 }
 
-#results-container {
-    background-color: #fff !important;  /* Force white background */
-}
-
-/* Individual result item */
 .result-item {
+    background-color: #fff; /* Explicitly set white background */
+    color: #333; /* Text color */
     padding: 10px;
     margin-bottom: 12px;
-    background-color: #fafafa;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, transform 0.2s ease;
 }
+
 
 .result-item:hover {
     background-color: #f0f0f0;

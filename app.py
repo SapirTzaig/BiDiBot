@@ -3,7 +3,12 @@ from dotenv import load_dotenv
 import requests
 import os
 from bs4 import BeautifulSoup
-import requests
+import json
+from PIL import Image
+import pytesseract
+import cv2
+import numpy as np
+
 
 # Load environment variables
 load_dotenv()
@@ -54,24 +59,46 @@ def analyze():
             # Get all external CSS links that might define RTL styles
             css_links = [link['href'] for link in soup.find_all('link', rel='stylesheet')]
 
-            # Combine relevant information into a payload for API analysis
+            # Load the prompt from the JSON file
+            with open('prompt.json', 'r') as json_file:
+                prompt_data = json.load(json_file)
+            
+            # Replace placeholders in the JSON prompt with dynamic data
+            prompt_text = prompt_data['text_analysis_prompt'].format(
+                html_content=html_content,
+                css_content=css_content,
+                css_links=", ".join(css_links),
+                direction=direction,
+                lang=lang
+            )
+            detailed_guidelines = prompt_data.get('detailed_guidelines', {})
+
+            # Construct the payload using the loaded prompt
             payload = {
                 "contents": [
                     {
                         "parts": [
-                            {"text": f"Please analyze the following web content for bidirectional support, including its HTML structure, inline CSS, and external stylesheets.\n\nHTML Content:\n{html_content}\n\nInline CSS:\n{css_content}\n\nExternal CSS Links:\n{', '.join(css_links)}\n\nDirectionality: {direction}\nLanguage: {lang}"}
+                            {"text": prompt_text},
+                            {"text": json.dumps(detailed_guidelines)}
                         ]
                     }
                 ]
             }
 
-        else:
-            # In case of image, provide analysis text
+        elif input_image:
+            # Load the prompt for image analysis from the JSON file
+            with open('prompt.json', 'r') as json_file:
+                prompt_data = json.load(json_file)
+
+            # Use the image analysis prompt directly from the JSON file
+            prompt_text = prompt_data['image_analysis_prompt']
+
+            # Construct the payload for image analysis
             payload = {
                 "contents": [
                     {
                         "parts": [
-                            {"text": "Please analyze this photo for bidirectional support."}
+                            {"text": prompt_text}
                         ]
                     }
                 ]
@@ -90,13 +117,13 @@ def analyze():
         )
 
         # Log the full response data for debugging
-        print("API Response Data:", response.json())  # Log the response to the console
+        #print("API Response Data:", response.json())  # Log the response to the console
 
         # Handle the response
         if response.status_code == 200:
             response_data = response.json()
             # Log the response structure
-            print("API Response Structure:", response_data)  # Log the actual response structure
+            #print("API Response Structure:", response_data)  # Log the actual response structure
             
             # Extract the analysis result from the response
             candidates = response_data.get("candidates", [])
