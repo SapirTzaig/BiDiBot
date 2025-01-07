@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BiDiBot</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/BiDi.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Bi-Di.ico') }}">
 </head>
 <body>
     <header>
         <div class="logo">
-            <img src="{{ url_for('static', filename='images/BiDi.jpg') }}" alt="Logo">
-            <span>BiDiBot</span>
+            <img src="{{ url_for('static', filename='images/bidi-logo.jpg') }}" alt="Logo">
+            <!-- <span>BiDiBot</span> -->
         </div>
         <div class="user-profile">
             <img src="{{ url_for('static', filename='images/user.png') }}" alt="User" class="user-img" id="userImg">
@@ -24,9 +24,6 @@
 
     <main>
         <div class="header-content">
-            <div class="logo-container">
-                <img src="{{ url_for('static', filename='images/BiDi_main.jpg') }}" alt="Logo" class="logo">
-            </div>
             <p id="welcomeMessage">Welcome to BiDiBot!</p>
         </div>
 
@@ -43,10 +40,20 @@
                 </div>
 
                 <input type="text" id="url" name="url" placeholder="Enter URL here" class="url-input">
-
                 <button type="submit" class="start-button">Start</button>
                 <button type="button" id="clear-button" class="clear-button">Clear</button>
             </div>
+                
+            <div class="role-selection">
+                <p>Please select a role to generate the appropriate response:</p>
+                <label>
+                    <input type="radio" name="role" value="developers"> Developers
+                </label>
+                <label>
+                    <input type="radio" name="role" value="ux-designers"> UX Designers
+                </label>
+            </div>
+            
 
             <!-- Loading Section -->
             <div id="loading-section" style="display: none; text-align: center; margin-top: 20px;">
@@ -144,10 +151,17 @@
 
             const urlInput = document.getElementById('url').value;
             const imageInput = document.getElementById('image').files[0];
+            const roleSelected = document.querySelector('input[name="role"]:checked');
+
             const resultsHeader = document.getElementById("results-header");
             const resultsContainer = document.getElementById("results-container");
             const loadingSection = document.getElementById("loading-section");
             const loadingCircle = document.getElementById("loading-circle");
+
+            if (!roleSelected) {
+            alert("Please select a role to proceed.");
+            return;
+            }
 
             // Clear previous results
             resultsContainer.innerHTML = '';

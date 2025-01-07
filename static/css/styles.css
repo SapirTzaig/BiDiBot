@@ -19,7 +19,7 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px; /* Larger padding for a more modern feel */
-    background-color: #1f1f1f; /* Darker background for header */
+    background-color: #0E2242; /* Darker background for header */
     color: white;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
@@ -34,7 +34,8 @@ header .logo {
 }
 
 header .logo img {
-    height: 40px;
+    height: 60px;
+    width: 70px;
     margin-right: 10px;
 }
 
@@ -65,14 +66,6 @@ main {
     flex-direction: column; /* Stack logo above the welcome message */
     align-items: center;
     justify-content: center;
-    margin-bottom: 30px; /* Add some space below the header */
-}
-
-/* Logo container */
-.logo-container img {
-    width: 350px;  /* Set the width of the logo */
-    height: 150px; /* Set the height of the logo */
-    margin-bottom: 15px; /* Space between logo and welcome message */
 }
 
 /* Welcome message styling */
@@ -99,13 +92,13 @@ main {
     align-items: center;
     gap: 15px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    margin-bottom: 22px;
     padding: 0 20px;
 }
 
 /* URL input field */
 .url-input {
-    width: 300px;
+    width: 500px;
     padding: 15px;
     border: 2px solid #ccc;
     border-radius: 50px;
@@ -160,7 +153,7 @@ main {
     padding: 12px 25px;
     font-size: 1.1em;
     border: none;
-    background-color: #007bff;
+    background-color: #95c23d;
     color: white;
     border-radius: 50px;
     cursor: pointer;
@@ -168,7 +161,7 @@ main {
 }
 
 .start-button:hover {
-    background-color: #0056b3;
+    background-color: #547a3f;
     transform: translateY(-2px); /* Lift the button slightly */
 }
 
@@ -177,14 +170,14 @@ main {
     padding: 12px 25px;
     font-size: 1.1em;
     border: none;
-    background-color: #da6efb;
+    background-color: #e34666;
     color: white;
     border-radius: 50px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 .clear-button:hover {
-    background-color: #ca85dd;
+    background-color: #ce6a65;
     transform: translateY(-2px);
 }
 
@@ -249,10 +242,10 @@ main {
 /* Results container */
 #results-container {
     background-color: #fff !important;
-    width: 80%;
-    max-height: 250px;
+    width: 90%;
+    max-height: 350px;
     overflow-y: auto;
-    padding: 20px;
+    padding: 30px;
     background-color: #fff;
     border-radius: 10px;
     border: 1px solid #ddd;
@@ -340,4 +333,29 @@ main {
     to {
         transform: rotate(360deg);
     }
+}
+
+.role-selection {
+    text-align: center;
+    margin-top: 20px;
+    padding: 0; 
+}
+
+.role-selection p {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.role-selection label {
+    display: inline-block;
+    margin-right: 20px;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+}
+
+.role-selection input[type="radio"] {
+    margin-right: 5px;
+    transform: scale(1.2); /* Keep this for larger radio buttons */
 }
