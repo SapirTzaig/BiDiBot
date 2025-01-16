@@ -12,6 +12,9 @@ import base64
 import io
 import google.generativeai as genai
 from flask_sslify import SSLify
+import imgkit
+
+
 
 # Load environment variables
 load_dotenv()
@@ -34,10 +37,17 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # app.config['SERVER_NAME'] = 'bidibot.cs.bgu.ac.il'
-# app.config['SERVER_NAME'] = 'bidibot.cs.bgu.ac.il'
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is not set. Please check your .env file.")
+
+# def capture_screenshot(url, output_path):
+#     options = {
+#         'width': 1280,
+#         'height': 1024
+#     }
+#     path_to_wkhtmltoimage = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"
+#     imgkit.from_url(url, output_path, config=imgkit.config(wkhtmltoimage=path_to_wkhtmltoimage), options=options)
 
 @app.route('/')
 def home():
@@ -66,6 +76,10 @@ def analyze():
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
             }
+            # screenshot_path = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
+            # print(screenshot_path)
+            # capture_screenshot(input_text, screenshot_path)
+
             response = requests.get(input_text, headers=headers)
             if response.status_code == 403:
                 return jsonify({"error": "Access to the URL is forbidden (403). Please try a different URL."}), 403
@@ -122,7 +136,13 @@ def analyze():
 
                 # Upload image to Gemini
                 uploaded_file = genai.upload_file(file_path)
-                prompt_text = prompt_data['image_analysis_prompt']
+
+                image_analysis_prompt = prompt_data['image_analysis_prompt']
+
+                detailed_guidelines = json.dumps(prompt_data.get('detailed_guidelines', []))
+
+                # Combine them as needed
+                prompt_text = f"{image_analysis_prompt}\n\n{detailed_guidelines}"
 
                 # Generate content for the image
                 result = model.generate_content([uploaded_file, "\n\n", prompt_text])
