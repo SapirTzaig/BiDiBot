@@ -1,5 +1,6 @@
 {
     "text_analysis_prompt": "Please analyze the following web content for bidirectional support, including its HTML structure, inline CSS, and external stylesheets.\n\nHTML Content:\n{html_content}\n\nInline CSS:\n{css_content}\n\nExternal CSS Links:\n{css_links}\n\nDirectionality: {direction}\nLanguage: {lang}",
+    "text_analysis_prompt": "Analyze the following web content for bidirectional support, including its HTML structure, inline CSS, and external stylesheets.\n\nHTML Content:\n{html_content}\n\nInline CSS:\n{css_content}\n\nExternal CSS Links:\n{css_links}\n\nDirectionality: {direction}\nLanguage: {lang}. Focus on the logo location.",
     "detailed_guidelines": {
         "description": "I am working on detecting bidirectional user interface (UI) issues where components like calendars, labels, and UI items must adapt for right-to-left (RTL) languages such as Hebrew and Arabic, while also supporting left-to-right (LTR) languages like English. I will send you an information of the UI. Please analyze it, identify potential problems, and suggest clear, actionable solutions to fix them.",
         "subjects": [
@@ -44,7 +45,6 @@
                 "details": [
                     "Ensure the layout follows an RTL direction for RTL languages, including navigation panels, forward/backward icons, and interaction flows in images.",
                     "Icons depicting real-world objects or logos should maintain their standard orientation.",
-                    "Ensure consistent directionality for grouped UI items."
                 ]
             }
         ],
