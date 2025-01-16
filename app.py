@@ -16,13 +16,13 @@ from flask_sslify import SSLify
 load_dotenv()
 
 app = Flask(__name__)
-sslify = SSLify(app)
+# sslify = SSLify(app)
 
 
 # API Configuration
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-app.config['SERVER_NAME'] = 'bidibot.cs.bgu.ac.il'
+# app.config['SERVER_NAME'] = 'bidibot.cs.bgu.ac.il'
 
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is not set. Please check your .env file.")
@@ -182,9 +182,10 @@ def logout():
     return render_template('index.html')  # Redirect back to the homepage after logging out
 
 if __name__ == '__main__':
-    app.run(
-        host='132.73.84.223',
-        port=443,
-        debug=True,
-        ssl_context=('fullchain.pem', 'privkey.pem')  # Add the SSL certificate and key
-    )
+    # app.run(
+    #     host='132.73.84.223',
+    #     port=443,
+    #     debug=True,
+    #     ssl_context=('fullchain.pem', 'privkey.pem')  # Add the SSL certificate and key
+    # )
+    app.run(debug=True)
