@@ -28,6 +28,10 @@ def home():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
+    # Additional validation or processing
+    # Log incoming form data and file uploads
+    print("Form Data:", request.form)
+    print("Uploaded File:", request.files)
     # Get the form data
     input_text = request.form.get('url')  # This matches the name of the URL input
     input_image = request.files.get('image')  # This is to handle image uploads
@@ -37,9 +41,16 @@ def analyze():
 
     try:
         if input_text:
-            # Fetch the content from the provided URL
-            response = requests.get(input_text)
+            # Fetch the content from the provided URL with headers
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            }
+            response = requests.get(input_text, headers=headers)
+            if response.status_code == 403:
+                return jsonify({"error": "Access to the URL is forbidden (403). Please try a different URL."}), 403
+            response.raise_for_status()
             if response.status_code != 200:
+                print(f"Error fetching URL: {response.status_code}")
                 return jsonify({"error": f"Failed to retrieve the URL. Status code: {response.status_code}"}), 400
 
             # Parse the HTML content using BeautifulSoup
