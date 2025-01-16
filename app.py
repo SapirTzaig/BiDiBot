@@ -206,10 +206,4 @@ if __name__ == '__main__':
     #     debug=True,
     #     ssl_context=('fullchain.pem', 'privkey.pem')  # Add the SSL certificate and key
     # )
-    # app.run(
-    #     host='132.73.84.223',
-    #     port=443,
-    #     debug=True,
-    #     ssl_context=('fullchain.pem', 'privkey.pem')  # Add the SSL certificate and key
-    # )
     app.run(debug=True)
