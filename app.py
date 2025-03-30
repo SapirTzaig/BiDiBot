@@ -5,24 +5,22 @@ import os
 from bs4 import BeautifulSoup
 import json
 from PIL import Image
-import pytesseract
-import cv2
-import numpy as np
-import base64
-import io
 import google.generativeai as genai
-from flask_sslify import SSLify
 import imgkit
-
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+import time
 
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__, static_folder='static')
-# sslify = SSLify(app)
-
-# Set up the path for uploaded images
 UPLOAD_FOLDER = os.path.join(app.static_folder)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -41,13 +39,40 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is not set. Please check your .env file.")
 
-# def capture_screenshot(url, output_path):
-#     options = {
-#         'width': 1280,
-#         'height': 1024
-#     }
-#     path_to_wkhtmltoimage = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"
-#     imgkit.from_url(url, output_path, config=imgkit.config(wkhtmltoimage=path_to_wkhtmltoimage), options=options)
+def capture_screenshot(url, output_path):
+    options = {
+        'width': 1280,
+        'height': 1024
+    }
+    path_to_wkhtmltoimage = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"
+    imgkit.from_url(url, output_path, config=imgkit.config(wkhtmltoimage=path_to_wkhtmltoimage), options=options)
+
+
+def capture_full_screenshot(url, output_path):
+    options = Options()
+    options.add_argument("--headless")  # Run in headless mode
+    options.add_argument("--start-maximized")  # Maximize window
+    options.add_argument("--hide-scrollbars")
+    options.add_argument("--disable-gpu")
+    
+    # Initialize WebDriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver.get(url)
+
+    # Wait for page to load (adjust as needed)
+    time.sleep(3)
+
+    # Get total height of the page
+    total_height = driver.execute_script("return document.body.scrollHeight")
+
+    # Set window size to capture everything
+    driver.set_window_size(1280, total_height)
+
+    # Take the screenshot
+    screenshot_path = output_path
+    driver.save_screenshot(screenshot_path)
+
+    driver.quit()
 
 @app.route('/')
 def home():
@@ -76,9 +101,10 @@ def analyze():
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
             }
-            # screenshot_path = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
+            screenshot_path = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
             # print(screenshot_path)
             # capture_screenshot(input_text, screenshot_path)
+            capture_full_screenshot(input_text, screenshot_path)
 
             response = requests.get(input_text, headers=headers)
             if response.status_code == 403:
