@@ -6,6 +6,7 @@
     <title>BiDiBot</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Bi-Di.ico') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header>
@@ -32,6 +33,11 @@
         <form id="analysis-form" method="POST" enctype="multipart/form-data">
             <div class="form-container">
                 <!-- Image upload button container -->
+                <div class="results-export-container">
+                    <button id="export-pdf-btn" class="results-export-btn" disabled>
+                        <img src="{{ url_for('static', filename='images/pdf_export.png') }}" alt="Export results" />
+                    </button>
+                </div>
                 <div class="image-upload-container">
                     <label for="image" class="image-upload-btn">
                         <img src="{{ url_for('static', filename='images/upload.png') }}" alt="Upload Image" />
@@ -47,10 +53,10 @@
             <div class="role-selection">
                 <p>Please select a role to generate the appropriate response:</p>
                 <label>
-                    <input type="radio" name="role" value="developers"> Developers
+                    <input type="radio" name="role" value="developers" disabled> Developers
                 </label>
                 <label>
-                    <input type="radio" name="role" value="ux-designers"> UX Designers
+                    <input type="radio" name="role" value="ux-designers" checked> UX Designers
                 </label>
             </div>
             
@@ -140,6 +146,8 @@
 
             // Hide loading section
             loadingSection.style.display = "none";
+            // Disable export button when results are cleared
+            exportBtn.disabled = true;
         }
 
         // Attach the resetForm function to the "Clear" button
@@ -237,6 +245,29 @@
                 loadingSection.style.display = "none";
                 clearInterval(dotInterval);
             }
+            // Enable the export button if results exist
+            enableExportIfResults();
+        });
+
+        const exportBtn = document.getElementById('export-pdf-btn');
+
+        function enableExportIfResults() {
+            const resultsContainer = document.getElementById("results-container");
+            if (resultsContainer.innerHTML.trim() !== "") {
+                exportBtn.disabled = false;
+            }
+        }
+
+        exportBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            const resultsContainer = document.getElementById("results-container");
+            const doc = new jspdf.jsPDF();
+            const resultsText = resultsContainer.innerText || "No content available";
+
+            const lines = doc.splitTextToSize(resultsText, 180);
+            doc.text(lines, 10, 10);
+            doc.save("BiDiBot_Results.pdf");
         });
     </script>
 </body>

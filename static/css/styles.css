@@ -119,6 +119,12 @@ main {
     align-items: center;
 }
 
+.results-export-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
 /* Custom image upload button */
 .image-upload-btn {
     display: inline-block; /* Display as inline-block for better alignment */
@@ -136,6 +142,8 @@ main {
     height: 60px; /* Set a fixed height for the image */
     object-fit: contain; /* Ensure the image is fully contained without distortion */
 }
+
+
 
 /* Hover effect for the upload button */
 .image-upload-btn:hover {
@@ -358,4 +366,30 @@ main {
 .role-selection input[type="radio"] {
     margin-right: 5px;
     transform: scale(1.2); /* Keep this for larger radio buttons */
+}
+
+.results-export-btn {
+    border: none;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+    cursor: pointer; /* default active cursor */
+}
+
+.results-export-btn[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+    filter: grayscale(100%);
+}
+
+.results-export-btn img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    border-radius: 0;
 }
