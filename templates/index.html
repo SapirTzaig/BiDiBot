@@ -257,18 +257,89 @@
                 exportBtn.disabled = false;
             }
         }
-
         exportBtn.addEventListener('click', (e) => {
             e.preventDefault();
 
             const resultsContainer = document.getElementById("results-container");
             const doc = new jspdf.jsPDF();
-            const resultsText = resultsContainer.innerText || "No content available";
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const marginLeft = 15;
+            const marginRight = 15;
+            const usableWidth = pageWidth - marginLeft - marginRight;
+            const lineHeight = 10;
 
-            const lines = doc.splitTextToSize(resultsText, 180);
-            doc.text(lines, 10, 10);
-            doc.save("BiDiBot_Results.pdf");
+            // Set the font size globally for consistency
+            doc.setFontSize(12); // Global font size for the document
+            doc.setFont("Helvetica", "normal"); // Regular font style
+
+            // Add logo (rescale proportionally)
+            const logo = new Image();
+            logo.src = "{{ url_for('static', filename='images/bidi-logo.jpg') }}";
+            logo.onload = function () {
+                const logoWidth = 40;
+                const logoHeight = (logo.height / logo.width) * logoWidth;
+                doc.addImage(logo, 'JPEG', pageWidth / 2 - logoWidth / 2, 10, logoWidth, logoHeight);
+
+                // Title - font size 18px (Bold)
+                doc.setFontSize(18);
+                doc.setFont("Helvetica", "bold"); // Bold for the title
+                doc.text("BiDiBot Analysis Report", pageWidth / 2, 25 + logoHeight, { align: "center" });
+
+                // Adding generation date and time
+                const currentDate = new Date();
+                const formattedDate = currentDate.toLocaleDateString('en-US'); // Format: MM/DD/YYYY
+                const formattedTime = currentDate.toLocaleTimeString('en-US'); // Format: HH:MM:SS AM/PM
+                doc.setFontSize(12); // Font size for date and time
+                doc.setFont("Helvetica", "normal");
+                doc.text(`Generated on: ${formattedDate} at ${formattedTime}`, marginLeft, 35 + logoHeight);
+
+                // Draw a light gray line under the generation date
+                const lineY = 40 + logoHeight; // Position for the line
+                doc.setDrawColor(0, 153, 153); 
+                doc.setLineWidth(0.5); // Thin line
+                doc.line(marginLeft, lineY, pageWidth - marginRight, lineY); // Draw line across the page
+
+                // Reset font and start text below line
+                doc.setFontSize(12); // Set default font size for content
+                doc.setFont("Helvetica", "normal"); // Regular font style for content
+                let y = lineY + 5; // Start content 5px below the line
+
+                // Extract and wrap content
+                const resultsText = resultsContainer.innerText || "No content available";
+                const lines = doc.splitTextToSize(resultsText, usableWidth);
+
+                // Add the content text line by line
+                lines.forEach((line, index) => {
+                    if (y > pageHeight - 20) {
+                        addPageNumber(doc);
+                        doc.addPage();
+                        y = 20; // Reset y to top for new page
+                        doc.setFontSize(12);
+                        doc.setFont("Helvetica", "normal");
+                    }
+                    doc.text(line, marginLeft, y);
+                    y += lineHeight;
+                });
+
+                // Add page number for last page
+                addPageNumber(doc);
+
+                // Save the document
+                doc.save("BiDiBot_Results.pdf");
+            };
+
+            // Function to add page number
+            function addPageNumber(docInstance) {
+                const pageCount = docInstance.getNumberOfPages();
+                const currentPage = docInstance.internal.getCurrentPageInfo().pageNumber;
+                const pageText = `Page ${currentPage} of ${pageCount}`;
+                docInstance.setFontSize(10); // Font size for page number
+                docInstance.setFont("Helvetica", "normal"); // Regular font for page number
+                docInstance.text(pageText, pageWidth - marginRight, pageHeight - 10, { align: "right" });
+            }
         });
+
     </script>
 </body>
 </html>

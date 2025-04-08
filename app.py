@@ -16,7 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-
+driver = None
 # Load environment variables
 load_dotenv()
 
@@ -39,40 +39,63 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is not set. Please check your .env file.")
 
-def capture_screenshot(url, output_path):
-    options = {
-        'width': 1280,
-        'height': 1024
-    }
-    path_to_wkhtmltoimage = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"
-    imgkit.from_url(url, output_path, config=imgkit.config(wkhtmltoimage=path_to_wkhtmltoimage), options=options)
+# def capture_screenshot(url, output_path):
+#     options = {
+#         'width': 1280,
+#         'height': 1024
+#     }
+#     path_to_wkhtmltoimage = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"
+#     imgkit.from_url(url, output_path, config=imgkit.config(wkhtmltoimage=path_to_wkhtmltoimage), options=options)
 
+def get_driver():
+    global driver
+
+    def is_alive(drv):
+        try:
+            drv.title
+            return True
+        except WebDriverException:
+            return False
+
+    if driver is None or not is_alive(driver):
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-infobars")
+        chrome_options.add_argument("--window-size=1280,1024")
+
+        driver = webdriver.Chrome(
+            service=Service(ChromeDriverManager().install()),
+            options=chrome_options
+        )
+    return driver
 
 def capture_full_screenshot(url, output_path):
-    options = Options()
-    options.add_argument("--headless")  # Run in headless mode
-    options.add_argument("--start-maximized")  # Maximize window
-    options.add_argument("--hide-scrollbars")
-    options.add_argument("--disable-gpu")
-    
-    # Initialize WebDriver
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.get(url)
+    driver = get_driver()
 
-    # Wait for page to load (adjust as needed)
-    time.sleep(3)
+    try:
+        start = time.time()
 
-    # Get total height of the page
-    total_height = driver.execute_script("return document.body.scrollHeight")
+        driver.get(url)
+        print("[TIMER] After driver.get():", round(time.time() - start, 2), "seconds")
 
-    # Set window size to capture everything
-    driver.set_window_size(1280, total_height)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+        print("[TIMER] After WebDriverWait:", round(time.time() - start, 2), "seconds")
 
-    # Take the screenshot
-    screenshot_path = output_path
-    driver.save_screenshot(screenshot_path)
+        total_height = driver.execute_script("return document.body.scrollHeight")
+        driver.set_window_size(1280, min(total_height, 3000))
+        driver.save_screenshot(output_path)
 
-    driver.quit()
+        print("[TIMER] After screenshot saved:", round(time.time() - start, 2), "seconds")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to capture screenshot: {e}")
+        raise
 
 @app.route('/')
 def home():
@@ -188,11 +211,15 @@ def analyze():
         }
 
         # Make the API request
+        gemini_start = time.time()
+
         response = requests.post(
             f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
             headers=headers,
             json=payload
         )
+
+        print("[TIMER] Gemini API call duration:", round(time.time() - gemini_start, 2), "seconds")
         # Log the full response data for debugging
         #print("API Response Data:", response.json())  # Log the response to the console
 
