@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
@@ -116,7 +117,7 @@ def analyze():
 
     try:
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
-        with open('prompt.json', 'r') as json_file:
+        with open('prompt_v2.json', 'r') as json_file:
             prompt_data = json.load(json_file)
         
         if input_text:
