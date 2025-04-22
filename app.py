@@ -39,14 +39,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY is not set. Please check your .env file.")
 
-# def capture_screenshot(url, output_path):
-#     options = {
-#         'width': 1280,
-#         'height': 1024
-#     }
-#     path_to_wkhtmltoimage = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltoimage.exe"
-#     imgkit.from_url(url, output_path, config=imgkit.config(wkhtmltoimage=path_to_wkhtmltoimage), options=options)
-
 def get_driver():
     global driver
 
@@ -105,8 +97,8 @@ def home():
 def analyze():
     # Additional validation or processing
     # Log incoming form data and file uploads
-    print("Form Data:", request.form)
-    print("Uploaded File:", request.files)
+    # print("Form Data:", request.form)
+    # print("Uploaded File:", request.files)
     # Get the form data
     input_text = request.form.get('url')  # This matches the name of the URL input
     input_image = request.files.get('image')  # This is to handle image uploads
@@ -116,36 +108,55 @@ def analyze():
 
     try:
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
-        with open('prompt.json', 'r') as json_file:
+        with open('prompt_v2.json', 'r') as json_file:
             prompt_data = json.load(json_file)
         
-        if input_text:
-            # Fetch the content from the provided URL with headers
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-            }
-            screenshot_path = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
-            # print(screenshot_path)
-            # capture_screenshot(input_text, screenshot_path)
-            capture_full_screenshot(input_text, screenshot_path)
+        prompt_text = ""
+        uploaded_file = None
+        detailed_guidelines = json.dumps(prompt_data.get('detailed_guidelines', {}))
+        examples = json.dumps(prompt_data.get('examples', {}))
 
-            response = requests.get(input_text, headers=headers)
-            if response.status_code == 403:
-                return jsonify({"error": "Access to the URL is forbidden (403). Please try a different URL."}), 403
-            response.raise_for_status()
-            if response.status_code != 200:
-                print(f"Error fetching URL: {response.status_code}")
-                return jsonify({"error": f"Failed to retrieve the URL. Status code: {response.status_code}"}), 400
+        
+        if input_text:
+            screenshot_path = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
+            capture_full_screenshot(input_text, screenshot_path)
+            # Upload the screenshot to Gemini
+            uploaded_file = genai.upload_file(screenshot_path)
+                  
+            response = requests.get(input_text, headers={'User-Agent': 'Mozilla/5.0'})
 
             # Parse the HTML content using BeautifulSoup
             soup = BeautifulSoup(response.content, 'html.parser')
 
             # Extract HTML content, CSS, and structure for analysis
             html_content = str(soup)
-            
+
             # Extract inline CSS and check if there are any right-to-left styles
+            # Extract inline CSS
             inline_styles = soup.find_all('style')
-            css_content = "\n".join([style.get_text() for style in inline_styles])
+            inline_css = "\n".join([style.get_text() for style in inline_styles])
+
+            # Extract external CSS links
+            css_links = [link['href'] for link in soup.find_all('link', rel='stylesheet') if link.get('href')]
+
+            # Resolve relative URLs to absolute
+            from urllib.parse import urljoin
+            base_url = input_text  # the original URL you fetched
+            external_css = ""
+
+            for link in css_links:
+                css_url = urljoin(base_url, link)
+                try:
+                    css_response = requests.get(css_url)
+                    if css_response.status_code == 200:
+                        external_css += f"\n/* CSS from: {css_url} */\n{css_response.text}"
+                    else:
+                        external_css += f"\n/* Failed to load CSS from: {css_url} (status {css_response.status_code}) */\n"
+                except Exception as e:
+                    external_css += f"\n/* Error fetching {css_url}: {str(e)} */\n"
+
+            # Combine everything
+            css_content = inline_css + "\n" + external_css
 
             # Check for the presence of 'dir' or 'lang' attributes to identify BiDi support
             direction = soup.find('html').get('dir') if soup.find('html') else None
@@ -162,95 +173,32 @@ def analyze():
                 direction=direction,
                 lang=lang
             )
-            detailed_guidelines = prompt_data.get('detailed_guidelines', {})
-
-            # Construct the payload using the loaded prompt
-            payload = {
-                "contents": [
-                    {
-                        "parts": [
-                            {"text": prompt_text},
-                            {"text": json.dumps(detailed_guidelines)}
-                        ]
-                    }
-                ]
-            }
 
         elif input_image:
-            # Open the image using PIL
-            try:
-                # Save uploaded image
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], input_image.filename)
-                input_image.save(file_path)
+ 
+            # Save uploaded image
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], input_image.filename)
+            input_image.save(file_path)
 
-                # Upload image to Gemini
-                uploaded_file = genai.upload_file(file_path)
+            # Upload image to Gemini
+            uploaded_file = genai.upload_file(file_path)
 
-                image_analysis_prompt = prompt_data['image_analysis_prompt']
+            prompt_text = prompt_data['image_analysis_prompt']
 
-                detailed_guidelines = json.dumps(prompt_data.get('detailed_guidelines', []))
-
-                # Combine them as needed
-                prompt_text = f"{image_analysis_prompt}\n\n{detailed_guidelines}"
-
-                # Generate content for the image
-                result = model.generate_content([uploaded_file, "\n\n", prompt_text])
-
-                return jsonify({
-                    "analysis": result.text,
-                    "message": "Image analysis completed successfully"
-                })
-
-            except Exception as e:
-                print(f"Error during image processing: {str(e)}")
-                return jsonify({"error": "Failed to process the uploaded image.", "details": str(e)}), 500
-
-        # Set up headers
-        headers = {
-            "Content-Type": "application/json"
-        }
-
-        # Make the API request
-        gemini_start = time.time()
-
-        response = requests.post(
-            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
-            headers=headers,
-            json=payload
-        )
-
-        print("[TIMER] Gemini API call duration:", round(time.time() - gemini_start, 2), "seconds")
-        # Log the full response data for debugging
-        #print("API Response Data:", response.json())  # Log the response to the console
-
-        # Handle the response
-        if response.status_code == 200:
-            response_data = response.json()
-            # Log the response structure
-            #print("API Response Structure:", response_data)  # Log the actual response structure
-            
-            # Extract the analysis result from the response
-            candidates = response_data.get("candidates", [])
-            
-            if candidates:
-                content = candidates[0].get("content", {})
-                parts = content.get("parts", [])
-                
-                if parts:
-                    analysis_result = parts[0].get("text", "No analysis text found")
-                    return jsonify({
-                        "analysis": analysis_result,
-                        "message": "Analysis completed successfully"
-                    })
-                else:
-                    return jsonify({"error": "No analysis parts found."}), 500
-            else:
-                return jsonify({"error": "No candidates found."}), 500
-        else:
-            return jsonify({
-                "error": f"API error occurred: {response.status_code}",
-                "details": response.text
-            }), response.status_code
+        # Final call to Gemini with everything unified
+        result = model.generate_content([
+            uploaded_file,
+            "\n\n",
+            prompt_text,
+            "\n\n",
+            detailed_guidelines,
+            "\n\n",
+            examples
+        ])
+        return jsonify({
+            "analysis": result.text,
+            "message": "Analysis completed successfully"
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
