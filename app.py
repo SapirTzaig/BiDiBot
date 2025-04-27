@@ -108,13 +108,14 @@ def analyze():
 
     try:
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
-        with open('prompt_v2.json', 'r') as json_file:
+        with open('prompt_v3.json', 'r') as json_file:
             prompt_data = json.load(json_file)
         
         prompt_text = ""
         uploaded_file = None
         detailed_guidelines = json.dumps(prompt_data.get('detailed_guidelines', {}))
-        examples = json.dumps(prompt_data.get('examples', {}))
+        output_example = json.dumps(prompt_data.get('output_example', {}))
+
 
         
         if input_text:
@@ -193,7 +194,7 @@ def analyze():
             "\n\n",
             detailed_guidelines,
             "\n\n",
-            examples
+            output_example
         ])
         return jsonify({
             "analysis": result.text,
