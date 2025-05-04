@@ -6,7 +6,6 @@
                     "name": "Directionality",
                     "details": [
                         "Ensure text direction (RTL or LTR) matches the used language.",
-                        "Use RTL for RTL scripts like Arabic or Hebrew.",
                         "Use LTR for numerical notations and embedded LTR language words (e.g., English within RTL text).",
                         "Punctuation should align with the directionality of the associated text.",
                         "Verify the correct usage of the Unicode bidirectional (BiDi) algorithm to handle mixed scripts, such as numbers within RTL text."
@@ -16,69 +15,32 @@
                     "name": "Ambiguity",
                     "details": [
                         "All potentially ambiguous UI items (e.g., icons, arrows) must include a label or signifier explaining the direction or interpretation.",
-                        "Examples include date range, hour range, year range, expiration date input, and sale 1+2.",
-                        "Address event flow (images or text), timelines without time labels, undo/redo buttons, backward/forward icons, and next/previous button pairs."
-                    ]
+                        "Examples include date range, hour range, year range, expiration date input, and sale 1+2 and elements describing events flow (timelines without time labels, undo/redo buttons, backward/forward icons, and next/previous button pairs)"                    ]
                 },
                 {
                     "name": "Alignment",
                     "details": [
-                        "Multi-line text (three or more lines) should align to the reading direction.",
-                        "Short text blocks (one or two lines) can align based on the context (e.g. centered can stay centered.",
+                        "Multi-line text (three or more lines) should align to the reading direction (RTL TO right, LTR TO left).",
+                        "Single short text blocks (one or two lines) can align based on the context of the whole page (e.g. centered can stay centered).",
                         "Ensure placeholder text in input fields matches the expected input direction.",
-                        "Consistent alignment must be maintained for all items in a list."
+                        "Consistent alignment must be maintained for all items in a list according to the page alignment (e.g. in a drop down in RTL site all items will be aligned to the right, even if some items are in different languages)."
                     ]
                 },
                 {
                     "name": "Format",
                     "details": [
-                        "Use the correct date and number formats based on the language and context.",
-                        "Ensure text size consistency between LTR and RTL scripts.",
-                        "Slightly increase the font size for RTL scripts to visually balance text when compared with uppercase Latin letters."
+                        "Use the correct date and number formats based on the language and context (e.g. 23/05/2025 or 23.05.2025 for Hebrew).",
+                        "Ensure element size consistency between LTR and RTL scripts even if the text has different length (e.g. consistent button size for different languages: \"previous\" vs \"הקודם\").",
+                        "Slightly increase the font size for RTL scripts to visually balance text hight when compared with uppercase Latin letters."
                     ]
                 },
                 {
                     "name": "UI Items Direction & Grouping",
                     "details": [
                         "Ensure the layout follows an RTL direction for RTL languages, including navigation panels, forward/backward icons, and interaction flows in images.",
-                        "Icons depicting real-world objects or logos should maintain their standard orientation.",
-                        "Ensure consistent directionality for grouped UI items."
-                    ]
-                }
-            ],
-            "grouped_ui_items": [
-                {
-                    "category": "Quantity, Order, and Preference",
-                    "examples": [
-                        "Graphs (LTR labels): Trend graphs (Gregorian dates), Horizontal bar charts (Gregorian years).",
-                        "Graphs (Hebrew labels): Trend graphs (Hebrew months), Horizontal bar charts (Hebrew months).",
-                        "Order: Numerical rankings, Paginators, Star ratings.",
-                        "Mathematical tasks: Counters, Double sliders."
-                    ]
-                },
-                {
-                    "category": "BiDi Text",
-                    "examples": [
-                        "Ranges: Date ranges, Hour ranges, Year ranges (ambiguous or explicit).",
-                        "General: Expiration date inputs, Sales notation (e.g., '1+2')."
-                    ]
-                },
-                {
-                    "category": "Time Flow",
-                    "examples": [
-                        "Items: Event flow (images and descriptions), Progress bars, Timelines (Hebrew days, years at the top, years at the bottom)."
-                    ]
-                },
-                {
-                    "category": "Calendars",
-                    "examples": [
-                        "Types: Hebrew/English weekday calendars, Hebrew-only calendars, Calendars without weekday labels."
-                    ]
-                },
-                {
-                    "category": "Navigation",
-                    "examples": [
-                        "Elements: Backward/Forward buttons (icons), Next/Previous buttons (icons), Scrollbars, Toggles."
+                        "Icons depicting real-world objects or logos should maintain their standard orientation no mirroring logos (e.g. history icon should be counterclockwise, no matter what is the direction of the language).",
+                        "Ensure consistent directionality for grouped UI items.",
+                        "Ensure that movement objects such as people, vehicles, or animals move or face toward the left side of the image or layout in RTL (e.g., an accessibility icon in RTL should point to the left)."
                     ]
                 }
             ],
