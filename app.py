@@ -195,8 +195,8 @@ def analyze():
             prompt_text,
             "\n\n",
             detailed_guidelines,
-            # "\n\n",
-            # output_example
+            "\n\n",
+            output_example
         ])
         return jsonify({
             "analysis": result.text,
