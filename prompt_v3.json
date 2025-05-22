@@ -41,7 +41,7 @@
           "Ensure the layout follows RTL direction for RTL languages, including nav panels, forward/back icons, and flows.",
           "Real-world icons (e.g., history, undo, logos) must retain original orientation (no mirroring).",
           "Groupings of UI items must follow consistent directionality.",
-          "Objects showing motion (people, vehicles, etc.) must face or move leftward in RTL layouts."
+          "Ensure that movement objects such as people, vehicles, or animals move or face toward the left side of the image or layout in RTL (e.g., an accessibility icon in RTL should point to the left)."
         ]
       }
     ],
@@ -61,7 +61,7 @@
               "All potentially ambiguous UI elements have a directional label or indicator explaining the interpretation": "The price ranges on the right side of the page meet this guideline, as they are clearly defined with a correct combination of Arabic and numbers, for example '10 עד 20 ₪'.",
               "Text in RTL scripts appears at the same size as text in LTR scripts": "At the bottom of the page, there is a reference to an email address: the sentence is in Hebrew, and the email address is in English; both parts of the sentence are the same size, thus complying with the guideline.",
               "Use correct directionality in mixed text": "At the bottom of the page, the sentence referring to the email address is properly written from right to left for Hebrew, and the email address is correctly displayed from left to right.",
-              "Icons representing forward or backward movement point in the RTL direction": "The cart and accessibility icons point to the right, and therefore do not comply with this guideline.",
+              "Ensure that movement objects such as people, vehicles, or animals move or face toward the left side of the image or layout in RTL (e.g., an accessibility icon in RTL should point to the left).": "The cart and accessibility icons point to the right, and therefore do not comply with this guideline.",
               "Icons representing real-world objects or logos maintain the same orientation as in an LTR interface": "At the bottom of the page, the Facebook and Instagram icons appear correctly oriented, matching LTR interfaces, and comply with this guideline."
             }
 }
