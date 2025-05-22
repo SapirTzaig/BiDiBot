@@ -108,8 +108,10 @@ def analyze():
 
     try:
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
-        with open('prompt_v3.json', 'r') as json_file:
+        with open('prompt_v3.json', 'r', encoding='utf-8') as json_file:
             prompt_data = json.load(json_file)
+        print("check!!!")     
+
         
         prompt_text = ""
         uploaded_file = None
@@ -119,11 +121,11 @@ def analyze():
 
         
         if input_text:
+
             screenshot_path = os.path.join(app.config['UPLOAD_FOLDER'], 'screenshot.png')
             capture_full_screenshot(input_text, screenshot_path)
             # Upload the screenshot to Gemini
             uploaded_file = genai.upload_file(screenshot_path)
-                  
             response = requests.get(input_text, headers={'User-Agent': 'Mozilla/5.0'})
 
             # Parse the HTML content using BeautifulSoup
@@ -202,6 +204,7 @@ def analyze():
         })
 
     except Exception as e:
+        print(f"ERROR: Unexpected error opening prompt_v3.json: {e}")
         return jsonify({"error": str(e)}), 500
 
         
@@ -228,4 +231,5 @@ if __name__ == '__main__':
         debug=True,
         ssl_context=('fullchain.pem', 'privkey.pem')  # Add the SSL certificate and key
     )
+
     # app.run(debug=True)
