@@ -17,7 +17,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import htmlmin
 from csscompressor import compress
-import tiktoken
 
 driver = None
 # Load environment variables
@@ -214,6 +213,8 @@ def analyze():
             "analysis": result.text,
             "message": "Analysis completed successfully"
         })
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Invalid URL: {str(e)}"}), 400
 
     except Exception as e:
         print(f"ERROR: Unexpected error opening prompt_v3.json: {e}")
