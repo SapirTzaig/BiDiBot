@@ -15,6 +15,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+import htmlmin
+from csscompressor import compress
+import tiktoken
 
 driver = None
 # Load environment variables
@@ -110,8 +113,6 @@ def analyze():
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
         with open('prompt_v3.json', 'r', encoding='utf-8') as json_file:
             prompt_data = json.load(json_file)
-        print("check!!!")     
-
         
         prompt_text = ""
         uploaded_file = None
@@ -133,14 +134,19 @@ def analyze():
 
             # Extract HTML content, CSS, and structure for analysis
             html_content = str(soup)
+            html_content = htmlmin.minify(html_content, remove_comments=True, remove_empty_space=True)
+
 
             # Extract inline CSS and check if there are any right-to-left styles
             # Extract inline CSS
             inline_styles = soup.find_all('style')
+
             inline_css = "\n".join([style.get_text() for style in inline_styles])
+            inline_css = compress(inline_css)
 
             # Extract external CSS links
             css_links = [link['href'] for link in soup.find_all('link', rel='stylesheet') if link.get('href')]
+            css_links = css_links[:3]
 
             # Resolve relative URLs to absolute
             from urllib.parse import urljoin
@@ -158,8 +164,12 @@ def analyze():
                 except Exception as e:
                     external_css += f"\n/* Error fetching {css_url}: {str(e)} */\n"
 
+            external_css = compress(external_css)
             # Combine everything
             css_content = inline_css + "\n" + external_css
+
+            MAX_CSS_LENGTH = 10000  # characters
+            css_content = css_content[:MAX_CSS_LENGTH]
 
             # Check for the presence of 'dir' or 'lang' attributes to identify BiDi support
             direction = soup.find('html').get('dir') if soup.find('html') else None
@@ -189,6 +199,8 @@ def analyze():
             prompt_text = prompt_data['image_analysis_prompt']
 
         # Final call to Gemini with everything unified
+        token_estimate = len(prompt_text.split())
+        print(f"[DEBUG] Estimated token usage: {token_estimate}")
         result = model.generate_content([
             uploaded_file,
             "\n\n",
