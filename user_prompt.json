@@ -1,0 +1,77 @@
+{
+  "user_prompt": {
+    "html_content": "{html_content}",
+    "css_content": "{css_content}",
+    "css_links": "{css_links}",
+    "direction": "{direction}",
+    "lang": "{lang}",
+
+    "detailed_guidelines": {
+      "description": "I am working on detecting bidirectional user interface (UI) issues where components like calendars, labels, and UI items must adapt for right-to-left (RTL) languages such as Hebrew and Arabic, while also supporting left-to-right (LTR) languages like English. I will send you information of the UI. Please analyze it, identify potential problems that are only from the guidelines, specify which subject it violated and specifically which heuristic in that subject (please bold the sentence of the heuristic when returning the answer), and suggest clear, actionable solutions to fix them.",
+      "subjects": [
+        {
+          "name": "Directionality",
+          "details": [
+            "Ensure text direction (RTL or LTR) matches the used language.",
+            "Use LTR for numerical notations and embedded LTR language words (e.g., English within RTL text).",
+            "Punctuation should align with the directionality of the associated text."
+          ]
+        },
+        {
+          "name": "Ambiguity",
+          "details": [
+            "All potentially ambiguous UI items (e.g., icons, arrows) must include a label or signifier explaining the direction or interpretation.",
+            "Examples include date range, hour range, year range, expiration date input, and sale 1+2 and elements describing events flow (timelines without time labels, undo/redo buttons, backward/forward icons, and next/previous button pairs)"
+          ]
+        },
+        {
+          "name": "Alignment",
+          "details": [
+            "Multi-line text (three or more lines) should align to the reading direction (RTL TO right, LTR TO left).",
+            "Single short text blocks (one or two lines) can align based on the context of the whole page (e.g. centered can stay centered).",
+            "Ensure placeholder text in input fields matches the expected input direction.",
+            "Consistent alignment must be maintained for all items in a list according to the page alignment (e.g. in a drop down in RTL site all items will be aligned to the right, even if some items are in different languages)."
+          ]
+        },
+        {
+          "name": "Format",
+          "details": [
+            "Use the correct date and number formats based on the language and context (e.g. 23/05/2025 or 23.05.2025 for Hebrew).",
+            "Ensure element size consistency between LTR and RTL scripts even if the text has different length (e.g. consistent button size for different languages: \"previous\" vs \"הקודם\").",
+            "Slightly increase the font size for RTL scripts to visually balance text height when compared with uppercase Latin letters."
+          ]
+        },
+        {
+          "name": "UI Items Direction & Grouping",
+          "details": [
+            "Ensure the layout follows an RTL direction for RTL languages, including navigation panels, forward/backward icons, and interaction flows in images.",
+            "Icons depicting real-world objects or logos should maintain their standard orientation no mirroring logos (e.g. history icon should be counterclockwise, no matter what is the direction of the language).",
+            "Ensure consistent directionality for grouped UI items.",
+            "Ensure that movement objects such as people, vehicles, or animals move or face toward the left side of the image or layout in RTL (e.g., an accessibility icon in RTL should point to the left)."
+          ]
+        }
+      ],
+      "important_notes": [
+        "Avoid False Issues: If the page design is correct, provide no suggestions.",
+        "If an image is provided, *rely mainly on what the image shows* about text alignment and UI directionality, *rather than the HTML or CSS*, which might be incorrect or incomplete."
+      ]
+    },
+
+    "output_example": {
+      "intro": "These are the findings based on the given guidelines for the site:",
+      "Text aligned to the right or center of the layout": "The text in the 'לחצו כאן' button at the center of the page is aligned to the left instead of the right, and therefore does not comply with this guideline.",
+      "Text alignment in input fields: LTR for LTR strings and RTL for RTL strings": "In the email field for newsletter registration, when typing the email address, the text is aligned to the right instead of the left, contrary to this guideline.",
+      "Consistent alignment is used for all items in a list": "When navigating the menu at the top of the page, all options are right-aligned, properly following this guideline.",
+      "Placeholder text in input fields has correct directionality": "In the search box, the placeholder text 'מה מחפשים?' is aligned to the right, thus complying with this guideline.",
+      "All potentially ambiguous UI elements have a directional label or indicator explaining the interpretation": "The price ranges on the right side of the page meet this guideline, as they are clearly defined with a correct combination of Arabic and numbers, for example '10 עד 20 ₪'."
+    },
+
+    "another_output_example": {
+      "intro": "These are the findings based on the given guidelines for the site:",
+      "Text aligned to the right or center of the layout": "On this site, the text is consistently aligned either to the right or the center across the entire page.",
+      "Text with three or more lines aligned to the reading direction": "Although the page does not contain many blocks of text with three or more lines, the ones that do appear are properly right-aligned, as expected for RTL content.",
+      "Short text blocks (one or two lines) are aligned based on current context": "Under the section titled 'Fun Facts,' short text blocks of up to two lines are right-aligned in accordance with this guideline.",
+      "All potentially ambiguous UI elements have a directional label or indicator": "The star-based rating component, which may cause directional ambiguity, lacks an explanatory label or indicator and therefore does not meet this requirement."
+    }
+  }
+}
