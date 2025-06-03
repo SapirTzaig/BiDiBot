@@ -4,9 +4,7 @@ import requests
 import os
 from bs4 import BeautifulSoup
 import json
-from PIL import Image
 import google.generativeai as genai
-import imgkit
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
@@ -14,6 +12,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.common.exceptions import WebDriverException
+import validators
+
+
+
 import time
 import htmlmin
 from csscompressor import compress
@@ -60,6 +63,7 @@ def get_driver():
         chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument("--disable-infobars")
         chrome_options.add_argument("--window-size=1280,1024")
+        chrome_options.add_argument("--enable-unsafe-swiftshader")
 
         driver = webdriver.Chrome(
             service=Service(ChromeDriverManager().install()),
@@ -107,7 +111,12 @@ def analyze():
 
     if not input_text and not input_image:
         return jsonify({"error": "Please provide either a URL or an image to analyze."}), 400
-
+    
+    if input_text:
+        if not validators.url(input_text):
+            log_msg = f"[INVALID URL] Received invalid URL input: {input_text}"
+            print(log_msg)
+            return jsonify({"error": "Invalid URL format. Please enter a properly formatted URL (e.g., https://example.com)."}), 400
     try:
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
         with open('prompt_v3.json', 'r', encoding='utf-8') as json_file:
@@ -187,7 +196,19 @@ def analyze():
             )
 
         elif input_image:
- 
+            # Validate file type
+            allowed_extensions = {'png', 'jpg', 'jpeg'}
+            allowed_mime_types = {'image/png', 'image/jpeg'}
+
+            filename = input_image.filename.lower()
+            content_type = input_image.content_type
+
+            if (
+                '.' not in filename or
+                filename.rsplit('.', 1)[1] not in allowed_extensions or
+                content_type not in allowed_mime_types
+            ):
+                return jsonify({"error": "Invalid file type. Only PNG and JPEG images are allowed."}), 400
             # Save uploaded image
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], input_image.filename)
             input_image.save(file_path)
@@ -217,7 +238,7 @@ def analyze():
         return jsonify({"error": f"Invalid URL: {str(e)}"}), 400
 
     except Exception as e:
-        print(f"ERROR: Unexpected error opening prompt_v3.json: {e}")
+        print(f"ERROR: {e}")
         return jsonify({"error": str(e)}), 500
 
         

@@ -60,6 +60,7 @@ def get_driver():
         chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument("--disable-infobars")
         chrome_options.add_argument("--window-size=1280,1024")
+        chrome_options.add_argument("--enable-unsafe-swiftshader")
 
         driver = webdriver.Chrome(
             service=Service(ChromeDriverManager().install()),
