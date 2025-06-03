@@ -14,6 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import WebDriverException
 import validators
+from validator_collection import validators, errors
 
 
 
@@ -112,11 +113,14 @@ def analyze():
     if not input_text and not input_image:
         return jsonify({"error": "Please provide either a URL or an image to analyze."}), 400
     
+    
     if input_text:
-        if not validators.url(input_text):
-            log_msg = f"[INVALID URL] Received invalid URL input: {input_text}"
-            print(log_msg)
-            return jsonify({"error": "Invalid URL format. Please enter a properly formatted URL (e.g., https://example.com)."}), 400
+        try:
+            # This will raise an error if the URL is invalid
+            validators.url(input_text)
+        except errors.InvalidURLError:
+            return jsonify({'error': 'Invalid URL'}), 400
+
     try:
         # Load the prompt from the JSON file (moved outside of the conditional blocks)
         with open('prompt_v3.json', 'r', encoding='utf-8') as json_file:

@@ -237,7 +237,11 @@
                         resultsContainer.appendChild(errorMessage);
                     }
                     resultsContainer.style.backgroundColor = "#fff";
+                }else {
+                    // Show error from backend in a popup
+                    alert(result.error || "An error occurred.");
                 }
+
             } catch (error) {
                 alert(`Error: ${error.message}`);
             } finally {
