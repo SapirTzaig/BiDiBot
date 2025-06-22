@@ -1,5 +1,5 @@
 # BiDiBot
- Automatic Bidirectional Analyzing Tool
+ Automated tool for evaluating bidirectional user interfaces
 
 # Abstract
 Our project presents an innovative solution to a common yet under-addressed challenge in user interface (UI) design: identifying and resolving bidirectional issues caused by the combination of different languages and writing directions (e.g., Hebrew or Arabic, which are written from right to left, and English, which is written from left to right). 
