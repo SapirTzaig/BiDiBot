@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/Bi-Di.ico') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 </head>
 <body>
     <header>
@@ -261,77 +262,82 @@
                 exportBtn.disabled = false;
             }
         }
-        exportBtn.addEventListener('click', (e) => {
+        exportBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
             const resultsContainer = document.getElementById("results-container");
-            const doc = new jspdf.jsPDF();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const marginLeft = 15;
-            const marginRight = 15;
-            const usableWidth = pageWidth - marginLeft - marginRight;
-            const lineHeight = 10;
 
-            // Set the font size globally for consistency
-            doc.setFontSize(12); // Global font size for the document
-            doc.setFont("Helvetica", "normal"); // Regular font style
+            // Clone the results container
+            const clone = resultsContainer.cloneNode(true);
 
-            // Add logo (rescale proportionally)
-            const logo = new Image();
-            logo.src = "{{ url_for('static', filename='images/bidi-logo.jpg') }}";
-            logo.onload = function () {
+            // Style the clone to be off-screen but fully expanded
+            clone.style.position = 'absolute';
+            clone.style.left = '-9999px';
+            clone.style.top = '0';
+            clone.style.height = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+            clone.style.width = resultsContainer.offsetWidth + 'px';
+            clone.style.background = 'white'; // Ensure background is visible
+
+            document.body.appendChild(clone);
+
+            try {
+                const canvas = await html2canvas(clone, { scale: 2 });
+
+                // Remove the clone after capture
+                document.body.removeChild(clone);
+
+                const imgData = canvas.toDataURL('image/png');
+
+                const pdf = new jspdf.jsPDF();
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgWidth = pdfWidth - 30; // margins left/right 15
+                const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+                const logo = new Image();
+                logo.src = "{{ url_for('static', filename='images/bidi-logo.jpg') }}";
+                logo.onload = function () {
                 const logoWidth = 40;
                 const logoHeight = (logo.height / logo.width) * logoWidth;
-                doc.addImage(logo, 'JPEG', pageWidth / 2 - logoWidth / 2, 10, logoWidth, logoHeight);
+                pdf.addImage(logo, 'JPEG', pdfWidth / 2 - logoWidth / 2, 10, logoWidth, logoHeight);
 
-                // Title - font size 18px (Bold)
-                doc.setFontSize(18);
-                doc.setFont("Helvetica", "bold"); // Bold for the title
-                doc.text("BiDiBot Analysis Report", pageWidth / 2, 25 + logoHeight, { align: "center" });
+                pdf.setFontSize(18);
+                pdf.setFont("Helvetica", "bold");
+                pdf.text("BiDiBot Analysis Report", pdfWidth / 2, 25 + logoHeight, { align: "center" });
 
-                // Adding generation date and time
                 const currentDate = new Date();
-                const formattedDate = currentDate.toLocaleDateString('en-US'); // Format: MM/DD/YYYY
-                const formattedTime = currentDate.toLocaleTimeString('en-US'); // Format: HH:MM:SS AM/PM
-                doc.setFontSize(12); // Font size for date and time
-                doc.setFont("Helvetica", "normal");
-                doc.text(`Generated on: ${formattedDate} at ${formattedTime}`, marginLeft, 35 + logoHeight);
+                const formattedDate = currentDate.toLocaleDateString('en-US');
+                const formattedTime = currentDate.toLocaleTimeString('en-US');
+                pdf.setFontSize(12);
+                pdf.setFont("Helvetica", "normal");
+                pdf.text(`Generated on: ${formattedDate} at ${formattedTime}`, 15, 35 + logoHeight);
 
-                // Draw a light gray line under the generation date
-                const lineY = 40 + logoHeight; // Position for the line
-                doc.setDrawColor(0, 153, 153); 
-                doc.setLineWidth(0.5); // Thin line
-                doc.line(marginLeft, lineY, pageWidth - marginRight, lineY); // Draw line across the page
+                const lineY = 40 + logoHeight;
+                pdf.setDrawColor(0, 153, 153);
+                pdf.setLineWidth(0.5);
+                pdf.line(15, lineY, pdfWidth - 15, lineY);
 
-                // Reset font and start text below line
-                doc.setFontSize(12); // Set default font size for content
-                doc.setFont("Helvetica", "normal"); // Regular font style for content
-                let y = lineY + 5; // Start content 5px below the line
+                const contentTop = lineY + 10;
 
-                // Extract and wrap content
-                const resultsText = resultsContainer.innerText || "No content available";
-                const lines = doc.splitTextToSize(resultsText, usableWidth);
+                if (imgHeight > (pdfHeight - contentTop - 15)) {
+                    const scaledHeight = pdfHeight - contentTop - 15;
+                    const scaledWidth = (imgProps.width * scaledHeight) / imgProps.height;
+                    pdf.addImage(imgData, 'PNG', 15, contentTop, scaledWidth, scaledHeight);
+                } else {
+                    pdf.addImage(imgData, 'PNG', 15, contentTop, imgWidth, imgHeight);
+                }
 
-                // Add the content text line by line
-                lines.forEach((line, index) => {
-                    if (y > pageHeight - 20) {
-                        addPageNumber(doc);
-                        doc.addPage();
-                        y = 20; // Reset y to top for new page
-                        doc.setFontSize(12);
-                        doc.setFont("Helvetica", "normal");
-                    }
-                    doc.text(line, marginLeft, y);
-                    y += lineHeight;
-                });
+                pdf.save("BiDiBot_Results.pdf");
+                };
 
-                // Add page number for last page
-                addPageNumber(doc);
-
-                // Save the document
-                doc.save("BiDiBot_Results.pdf");
-            };
+            } catch (err) {
+                document.body.removeChild(clone);
+                alert("Failed to export PDF: " + err);
+            }
 
             // Function to add page number
             function addPageNumber(docInstance) {
