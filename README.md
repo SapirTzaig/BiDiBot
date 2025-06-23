@@ -30,5 +30,5 @@ Our project presents an innovative solution to a common yet under-addressed chal
 6. User can export the result as a professional PDF.
 
 # Credits
-- Developed by: Sapir Tzaig, David Miliov, Liron Shamen
+- Developed by: Sapir Tzaig, David Miliov, Liron Miriam Shemen
 - Supervisors: Prof. Noam Tractinsky, Dr. Dennis Klimov, Ms. Yulia Goldenberg
